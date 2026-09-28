@@ -45,17 +45,11 @@ npm run preview    # check the build locally
 
 ## Deploy
 
-**GitHub Pages**
-1. Push this folder to a GitHub repo (branch `main`).
-2. Repo → Settings → Pages → Source: **GitHub Actions**.
-3. The included workflow (`.github/workflows/deploy.yml`) builds and publishes on every push.
-
-**Cloudflare Workers (static assets)**
+Hosted on **Cloudflare Workers** (static assets):
 ```bash
 npm run build
 npx wrangler deploy     # uses wrangler.jsonc, serves ./dist
 ```
-Or use **Cloudflare Pages**: connect the repo with build command `npm run build` and output directory `dist`.
 
 ## Add the next phase
 
