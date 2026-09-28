@@ -1,0 +1,7 @@
+/* Pastel fills load last so they win over .card / .pill / .btn defaults. */
+.tint-pink { background: var(--pink); }
+.tint-blue { background: var(--blue); }
+.tint-green { background: var(--green); }
+.tint-yellow { background: var(--yellow); }
+.tint-cream { background: var(--cream); }
+.tint-white { background: var(--white); }

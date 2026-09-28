@@ -1,0 +1,104 @@
+/* ===========================================================
+   DESIGN TOKENS — BlockFrame (neobrutalist pastel blocks)
+   Light palette lives on bare :root. Dark mode only redefines
+   tokens. Pastel fills keep black text in both themes.
+   =========================================================== */
+:root {
+  /* palette (fixed) */
+  --black: #000000;
+  --white: #ffffff;
+  --offwhite: #fffdf5;
+  --pink: #fe90e8;
+  --blue: #c0f7fe;
+  --green: #99e885;
+  --yellow: #f7cb46;
+  --cream: #ffdc8b;
+
+  /* roles (theme-dependent) */
+  --bg: var(--offwhite);
+  --surface: var(--white);
+  --surface-2: #f6f2e4;
+  --ink: #000000;
+  --ink-soft: #33312c;
+  --ink-faint: #6a665c;
+  --line: #000000;
+  --shadow: #000000;
+  --dot: rgba(0, 0, 0, 0.13);
+  --code-bg: #141414;
+  --code-ink: #fffdf5;
+  --code-dim: #a9a594;
+  --focus: #1d4ed8;
+
+  /* type */
+  --font-display: 'Archivo Black', 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-label: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* structure */
+  --b4: 4px solid var(--line);
+  --b3: 3px solid var(--line);
+  --sh8: 8px 8px 0 var(--shadow);
+  --sh6: 6px 6px 0 var(--shadow);
+  --sh4: 4px 4px 0 var(--shadow);
+  --gutter: clamp(16px, 4vw, 40px);
+  --maxw: 1180px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #11110f;
+    --surface: #1c1b18;
+    --surface-2: #262521;
+    --ink: #fffdf5;
+    --ink-soft: #dcd8cb;
+    --ink-faint: #a5a194;
+    --line: #fffdf5;
+    --shadow: #fffdf5;
+    --dot: rgba(255, 253, 245, 0.12);
+    --code-bg: #0a0a09;
+    --focus: #7dd3fc;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #11110f;
+  --surface: #1c1b18;
+  --surface-2: #262521;
+  --ink: #fffdf5;
+  --ink-soft: #dcd8cb;
+  --ink-faint: #a5a194;
+  --line: #fffdf5;
+  --shadow: #fffdf5;
+  --dot: rgba(255, 253, 245, 0.12);
+  --code-bg: #0a0a09;
+  --focus: #7dd3fc;
+  color-scheme: dark;
+}
+
+/* Pastel surfaces: everything inside reads black, in both themes. */
+.tint-pink,
+.tint-blue,
+.tint-green,
+.tint-yellow,
+.tint-cream,
+.tint-white {
+  --ink: #000000;
+  --ink-soft: #1f1e1b;
+  --ink-faint: #3d3b35;
+  --line: #000000;
+  --focus: #1d4ed8;
+  --surface: #ffffff;
+  --surface-2: #f6f2e4;
+  color: var(--ink);
+}
+.tint-pink { background: var(--pink); }
+.tint-blue { background: var(--blue); }
+.tint-green { background: var(--green); }
+.tint-yellow { background: var(--yellow); }
+.tint-cream { background: var(--cream); }
+.tint-white { background: var(--white); }
