@@ -20,7 +20,7 @@
 .pc-num { display: grid; place-items: center; width: 48px; height: 48px; border: 3px solid #000; font: 400 22px/1 var(--font-display); color: #000; }
 
 /* ---------- phase overview ---------- */
-.flow-order { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.flow-order { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 16px; }
 .flow-order li { margin: 0; }
 .fo-item { display: flex; gap: 12px; align-items: flex-start; height: 100%; text-decoration: none; font-size: 14.5px; }
 .fo-item:hover { background: var(--yellow); color: #000; --ink-faint: #333; }

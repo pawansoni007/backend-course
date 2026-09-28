@@ -17,6 +17,7 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/slides.css';
 import './styles/pages.css';
+import './styles/scene.css';
 import './styles/tints.css';
 
 import App from './App.jsx';

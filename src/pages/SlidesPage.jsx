@@ -7,16 +7,19 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Icon from '../components/Icon.jsx';
 import { StageCtx } from '../components/diagrams.jsx';
+import Scene, { framesOf } from '../components/Scene.jsx';
 import { isTyping, useMedia } from '../lib.jsx';
 
-function SlideView({ slide, parts, index, total, stage, active }) {
+const stepsIn = (slide) => (slide?.scene ? framesOf(slide.scene).length : 1);
+
+function SlideView({ slide, parts, index, total, stage, active, sub, setSub }) {
   const p = parts[slide.part];
   const special = slide.layout === 'cover' || slide.layout === 'close';
   const cls = [
     'sl',
     stage ? 'slide' : 'read-slide',
     `bg-${slide.bg}`,
-    slide.layout ? `layout-${slide.layout}` : '',
+    slide.layout ? `layout-${slide.layout}` : slide.scene ? 'layout-scene' : '',
     active ? 'active visible' : '',
   ].join(' ');
   return (
@@ -29,7 +32,11 @@ function SlideView({ slide, parts, index, total, stage, active }) {
           {slide.lead && <p className="s-lead">{slide.lead}</p>}
         </header>
       )}
-      <div className="s-body reveal r2">{slide.body}</div>
+      <div className="s-body reveal r2">
+        {slide.scene ? (
+          stage ? <Scene def={slide.scene} step={active ? sub : 0} onStep={setSub} /> : <Scene def={slide.scene} />
+        ) : slide.body}
+      </div>
       {slide.remember && !special && (
         <div className="s-remember reveal r3">
           <span className="label">Remember</span>
@@ -40,7 +47,7 @@ function SlideView({ slide, parts, index, total, stage, active }) {
   );
 }
 
-function Deck({ slides, parts, index, go, present, setPresent }) {
+function Deck({ slides, parts, index, go, step, present, setPresent, sub, setSub }) {
   const wrapRef = useRef(null);
   const [box, setBox] = useState({ s: 0.5, x: 0, y: 0, h: 540 });
 
@@ -67,7 +74,7 @@ function Deck({ slides, parts, index, go, present, setPresent }) {
   const onTouchEnd = (e) => {
     if (touch.current == null) return;
     const dx = e.changedTouches[0].clientX - touch.current;
-    if (Math.abs(dx) > 50) go(index + (dx < 0 ? 1 : -1));
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
     touch.current = null;
   };
 
@@ -78,7 +85,7 @@ function Deck({ slides, parts, index, go, present, setPresent }) {
           <StageCtx.Provider value={true}>
             {slides.map((s, i) => (
               Math.abs(i - index) <= 1 ? (
-                <SlideView key={s.id} slide={s} parts={parts} index={i} total={slides.length} stage active={i === index} />
+                <SlideView key={s.id} slide={s} parts={parts} index={i} total={slides.length} stage active={i === index} sub={sub} setSub={setSub} />
               ) : null
             ))}
           </StageCtx.Provider>
@@ -86,10 +93,11 @@ function Deck({ slides, parts, index, go, present, setPresent }) {
       </div>
       <div className="deck-bar">
         <span className="pill deck-count">{String(index + 1).padStart(2, '0')} / {slides.length}</span>
+        {slides[index].scene && <span className="pill tint-yellow deck-count">Step {sub + 1} / {stepsIn(slides[index])}</span>}
         <div className="deck-progress" aria-hidden="true"><span style={{ width: `${((index + 1) / slides.length) * 100}%` }} /></div>
         <div className="row" style={{ '--gap': '10px' }}>
-          <button type="button" className="btn ghost icon" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide"><Icon name="left" /></button>
-          <button type="button" className="btn icon" onClick={() => go(index + 1)} disabled={index === slides.length - 1} aria-label="Next slide"><Icon name="right" /></button>
+          <button type="button" className="btn ghost icon" onClick={() => step(-1)} disabled={index === 0 && sub === 0} aria-label="Back"><Icon name="left" /></button>
+          <button type="button" className="btn icon" onClick={() => step(1)} disabled={index === slides.length - 1 && sub >= stepsIn(slides[index]) - 1} aria-label="Next"><Icon name="right" /></button>
           <button type="button" className="btn ghost small" onClick={() => setPresent(!present)}>
             <Icon name={present ? 'close' : 'expand'} size={16} /> {present ? 'Exit' : 'Present'} <kbd>{present ? 'Esc' : 'F'}</kbd>
           </button>
@@ -109,16 +117,28 @@ export default function SlidesPage({ phase, params }) {
     return Number.isFinite(n) ? Math.min(Math.max(n - 1, 0), slides.length - 1) : 0;
   });
   const [present, setPresent] = useState(false);
+  const [sub, setSub] = useState(0);
 
   // jump when search sends us to a slide
   useEffect(() => {
     const n = parseInt(params.s, 10);
-    if (Number.isFinite(n)) setIndex(Math.min(Math.max(n - 1, 0), slides.length - 1));
+    if (Number.isFinite(n)) { setIndex(Math.min(Math.max(n - 1, 0), slides.length - 1)); setSub(0); }
   }, [params.s, slides.length]);
 
-  const go = useCallback((i) => {
-    setIndex(Math.min(Math.max(i, 0), slides.length - 1));
-  }, [slides.length]);
+  const go = useCallback((i, atEnd = false) => {
+    const n = Math.min(Math.max(i, 0), slides.length - 1);
+    setIndex(n);
+    setSub(atEnd ? stepsIn(slides[n]) - 1 : 0);
+  }, [slides]);
+
+  // → plays the next animation step before moving on; ← rewinds it
+  const step = useCallback((dir) => {
+    const steps = stepsIn(slides[index]);
+    if (dir > 0 && sub < steps - 1) setSub(sub + 1);
+    else if (dir < 0 && sub > 0) setSub(sub - 1);
+    else if (dir > 0) go(index + 1);
+    else if (index > 0) go(index - 1, true);
+  }, [slides, index, sub, go]);
 
   // keep the address bar in sync without adding history entries
   useEffect(() => {
@@ -141,8 +161,10 @@ export default function SlidesPage({ phase, params }) {
     const onKey = (e) => {
       if (isTyping(e.target) || document.body.dataset.palette === 'open' || document.body.dataset.revising === 'true') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(index + 1); }
-      else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(index - 1); }
+      if (['ArrowRight', ' '].includes(e.key)) { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+      else if (e.key === 'PageDown') { e.preventDefault(); go(index + 1); }
+      else if (e.key === 'PageUp') { e.preventDefault(); go(index - 1); }
       else if (e.key === 'Home') go(0);
       else if (e.key === 'End') go(slides.length - 1);
       else if (e.key === 'f' || e.key === 'F') setPresent((p) => !p);
@@ -150,7 +172,7 @@ export default function SlidesPage({ phase, params }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [view, index, go, slides.length]);
+  }, [view, index, go, step, slides.length]);
 
   // lock page scroll while presenting
   useEffect(() => {
@@ -164,7 +186,10 @@ export default function SlidesPage({ phase, params }) {
         <div className="stack" style={{ '--gap': '14px' }}>
           <span className="pill tint-blue">Phase {phase.num} · Slides</span>
           <h1 className="display h-lg">{phase.title}</h1>
-          <p className="lead">{slides.length} slides in four parts. You can pause after any part. <span className="hide-narrow">Use <kbd>←</kbd> <kbd>→</kbd> to move and <kbd>F</kbd> to present.</span></p>
+          <p className="lead">
+            {slides.length} slides in {Object.keys(parts).length} parts. You can pause after any part.{' '}
+            <span className="hide-narrow">Use <kbd>←</kbd> <kbd>→</kbd> to move and <kbd>F</kbd> to present.{slides.some((x) => x.scene) && <> On animated slides, <kbd>→</kbd> plays the next step first.</>}</span>
+          </p>
         </div>
         <div className="seg" role="group" aria-label="View">
           <button type="button" className="btn small ghost" aria-pressed={view === 'deck'} onClick={() => setMode('deck')}>Slides</button>
@@ -174,7 +199,7 @@ export default function SlidesPage({ phase, params }) {
 
       {view === 'deck' ? (
         <>
-          <Deck slides={slides} parts={parts} index={index} go={go} present={present} setPresent={setPresent} />
+          <Deck slides={slides} parts={parts} index={index} go={go} step={step} present={present} setPresent={setPresent} sub={sub} setSub={setSub} />
           <nav className="slide-index" aria-label="All slides">
             {Object.entries(parts).map(([k, p]) => (
               <div key={k} className="si-part">
@@ -182,7 +207,7 @@ export default function SlidesPage({ phase, params }) {
                 <div className="si-list">
                   {slides.map((s, i) => s.part === k && (
                     <button type="button" key={s.id} className={`si-item ${i === index ? 'is-active' : ''}`} onClick={() => go(i)}>
-                      <span className="mono">{String(i + 1).padStart(2, '0')}</span> {s.title}
+                      <span className="mono">{String(i + 1).padStart(2, '0')}</span> {s.title}{s.scene && <span className="si-anim" title="Animated"> ▶</span>}
                     </button>
                   ))}
                 </div>

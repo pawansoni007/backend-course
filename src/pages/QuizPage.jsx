@@ -62,7 +62,7 @@ export default function QuizPage({ phase }) {
         {checked ? (
           <>
             <span className="quiz-score"><strong>{score}</strong> / {mcq.length}</span>
-            <span>{score >= 10 ? 'Ready for Phase 1.' : score >= 7 ? 'Nearly there. Revise the ones you missed.' : 'Go back through the slides and flashcards, then try again.'}</span>
+            <span>{score >= Math.ceil(mcq.length * 0.8) ? `Ready for Phase ${phase.num + 1}.` : score >= Math.ceil(mcq.length * 0.55) ? 'Nearly there. Revise the ones you missed.' : 'Go back through the slides and flashcards, then try again.'}</span>
             <button type="button" className="btn ghost" onClick={() => { setPicks({}); setChecked(false); window.scrollTo(0, 0); }}>Try again</button>
           </>
         ) : (

@@ -4,6 +4,7 @@
    in Ctrl/Cmd+K search and in revision mode.
    =========================================================== */
 import phase0 from './phase-0/index.js';
+import phase1 from './phase-1/index.js';
 import { slug } from '../lib.jsx';
 
 const soon = (num, title, summary, week) => ({ id: `phase-${num}`, num, title, summary, week, status: 'soon', pages: [] });
@@ -13,7 +14,7 @@ export const course = {
   short: 'Express Backend',
   phases: [
     phase0,
-    soon(1, 'JavaScript & Node.js essentials', 'Modern JS, async/await, npm, environment variables, Git, and a server with no framework.', 'Week 2'),
+    phase1,
     soon(2, 'Your first Express server', 'Routes, the request and response objects, middleware and routers.', 'Week 3'),
     soon(3, 'REST API design & CRUD', 'Resource naming, methods, status codes, pagination, and full CRUD.', 'Week 4'),
     soon(4, 'Databases & data modelling', 'SQL, relationships, PostgreSQL with Prisma, migrations and transactions.', 'Weeks 5–6'),
@@ -44,13 +45,16 @@ export function buildSearchIndex() {
     }
     add({ group: 'Pages', title: `${name}: ${ph.title}`, sub: 'Overview', to: `/${ph.id}`, featured: true, boost: 1 });
     ph.pages.forEach((pg) => {
-      add({ group: 'Pages', title: pg.title, sub: `${name} · ${pg.blurb}`, to: `/${ph.id}/${pg.slug}`, featured: ['slides', 'cheatsheet', 'journey', 'lab'].includes(pg.slug), boost: 3 });
+      add({ group: 'Pages', title: pg.title, sub: `${name} · ${pg.blurb}`, to: `/${ph.id}/${pg.slug}`, featured: ['slides', 'cheatsheet', 'journey', 'lab', 'explainers', 'demos'].includes(pg.slug), boost: 3 });
       (pg.sections || []).forEach((s) => {
         add({ group: pg.title, title: s.title, sub: s.sub || `${name} · ${pg.title}`, to: `/${ph.id}/${pg.slug}?s=${s.id}`, keywords: s.keywords || '' });
       });
     });
     ph.slides.forEach((s, i) => {
       add({ group: 'Slides', title: s.title, sub: `Slide ${i + 1} · ${ph.parts[s.part].label}`, to: `/${ph.id}/slides?s=${i + 1}`, keywords: `${s.lead || ''} ${s.remember || ''}` });
+    });
+    (ph.explainers || []).forEach(({ def }) => {
+      add({ group: 'Animations', title: def.title, sub: `${name} · ${def.blurb}`, to: `/${ph.id}/explainers?x=${def.id}`, keywords: `animated animation ${def.blurb}` });
     });
     ph.glossary.forEach(([term, def]) => {
       add({ group: 'Glossary', title: term, sub: def.replace(/`/g, ''), to: `/${ph.id}/cheatsheet?s=term-${slug(term)}`, keywords: def });

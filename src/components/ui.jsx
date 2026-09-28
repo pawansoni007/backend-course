@@ -64,18 +64,34 @@ export function highlight(code, lang) {
           ? `<span class="tok-c">${line}</span>`
           : line
               .replace(/('[^']*')/g, '<span class="tok-s">$1</span>')
-              .replace(/^(\s*)(curl|nslookup|dig|ping|node|npm)\b/, '$1<span class="tok-k">$2</span>')
+              .replace(/^(\s*(?:\$ )?)(curl|nslookup|dig|ping|node|npm|npx|git|gh|cd|mkdir|ls|cat|echo|touch|rm|code)\b/, '$1<span class="tok-k">$2</span>')
               .replace(/(\s)(-{1,2}[A-Za-z-]+)/g, '$1<span class="tok-h">$2</span>'),
       )
       .join('\n');
   } else if (lang === 'js') {
-    h = h
-      .replace(/(\/\/.*)$/gm, '<span class="tok-c">$1</span>')
-      .replace(/('(?:[^'\\]|\\.)*'|`[^`]*`)/g, '<span class="tok-s">$1</span>')
-      .replace(/\b(const|let|await|async|return|import|from|function|new|if|else)\b/g, '<span class="tok-k">$1</span>')
-      .replace(/\b(\d+)\b/g, '<span class="tok-n">$1</span>');
+    h = highlightJs(code);
   }
   return h;
+}
+
+const JS_KW = new Set('const let var await async return import from export default function new if else try catch finally throw for of in while do break continue class extends this typeof instanceof true false null undefined switch case'.split(' '));
+const JS_GLOBAL = new Set('console process JSON Promise setTimeout setInterval clearTimeout fetch require module Math Date Error Object Array Number String Boolean Map Set URL'.split(' '));
+const JS_TOKENS = /(\/\/.*$)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/gm;
+function highlightJs(code) {
+  let out = '';
+  let last = 0;
+  for (const m of code.matchAll(JS_TOKENS)) {
+    out += esc(code.slice(last, m.index));
+    const [t, comment, str, num, word] = m;
+    if (comment) out += `<span class="tok-c">${esc(t)}</span>`;
+    else if (str) out += `<span class="tok-s">${esc(t)}</span>`;
+    else if (num) out += `<span class="tok-n">${t}</span>`;
+    else if (JS_KW.has(word)) out += `<span class="tok-k">${t}</span>`;
+    else if (JS_GLOBAL.has(word)) out += `<span class="tok-h">${t}</span>`;
+    else out += t;
+    last = m.index + t.length;
+  }
+  return out + esc(code.slice(last));
 }
 
 export function CodeBlock({ code, lang = 'text', title, copy = true }) {

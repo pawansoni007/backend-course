@@ -14,6 +14,7 @@ import ContentPage from './pages/ContentPage.jsx';
 import JourneyPage from './pages/JourneyPage.jsx';
 import QuizPage, { AnswerKeyPage } from './pages/QuizPage.jsx';
 import FlashcardsPage from './pages/FlashcardsPage.jsx';
+import ExplainersPage from './pages/ExplainersPage.jsx';
 
 const THEMES = ['system', 'light', 'dark'];
 
@@ -112,6 +113,7 @@ export default function App() {
   else if (page.kind === 'quiz') view = <QuizPage phase={phase} />;
   else if (page.kind === 'answers') view = <AnswerKeyPage phase={phase} />;
   else if (page.kind === 'flashcards') view = <FlashcardsPage phase={phase} />;
+  else if (page.kind === 'explainers') view = <ExplainersPage phase={phase} params={params} />;
   else view = <NotFound />;
 
   const themeIcon = theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'auto';

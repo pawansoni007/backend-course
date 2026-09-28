@@ -4,7 +4,7 @@ import { Callout } from '../components/ui.jsx';
 import Icon from '../components/Icon.jsx';
 
 export default function PhaseHome({ phase }) {
-  const flow = [
+  const flow = phase.flow || [
     ['slides', 'Teach with the slides', 'Keep the lesson plan open on your side.'],
     ['journey', 'Walk the request journey', 'Let him click through all three endings.'],
     ['lab', 'Do the lab missions', 'DevTools, Postman, curl, nslookup, drawing.'],
@@ -25,7 +25,7 @@ export default function PhaseHome({ phase }) {
 
       <section className="stack" style={{ '--gap': '18px' }}>
         <h2 className="display h-md">Suggested order</h2>
-        <ol className="flow-order">
+        <ol className="flow-order" style={{ '--n': flow.length > 5 ? 3 : flow.length }}>
           {flow.map(([slug, t, d], i) => (
             <li key={slug}>
               <Link to={`/${phase.id}/${slug}`} className="card sm fo-item">

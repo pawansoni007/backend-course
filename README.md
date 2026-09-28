@@ -4,7 +4,7 @@ A Vite + React site that holds everything for teaching backend engineering, one 
 
 **Live:** https://backend-course.radha-vatika-api.workers.dev/ (Cloudflare Workers)
 
-Phase 0, **How the web works**, is complete:
+Two phases are complete. **Phase 0, How the web works**:
 
 | Page | What it is |
 | --- | --- |
@@ -17,13 +17,23 @@ Phase 0, **How the web works**, is complete:
 | Answer key | Teacher's copy of every answer with the reason |
 | Flashcards | 50 Anki-style flip cards, filterable by topic |
 
+**Phase 1, JavaScript & Node.js essentials** (same pages minus the journey, plus two new ones):
+
+| Page | What it is |
+| --- | --- |
+| Slides | 48 slides in five parts; 12 of them are step-by-step animations |
+| Animations | The 12 animated explainers (call stack, references, filter/map, one waiter, event loop, microtasks, async/await, Promise.all, npm install, Git areas, POST body, never block the thread), with play/pause and full screen |
+| Live demos | Teacher's practical script: 15 demos with every file, command and expected output (all run and checked on Node 24), plus how to break each one |
+| Lab worksheet | Six missions: predict-then-run, async puzzles, npm, `.env`, GitHub, and a raw `node:http` server |
+
 ## Shortcuts
 
 | Key | Does |
 | --- | --- |
 | `Ctrl K` / `⌘ K` or `/` | Search every page, section, slide and glossary term |
 | `R` | Flip any page into revision flashcards (and back) |
-| `←` `→` · `F` · `Esc` | Move through slides · present full screen · leave |
+| `←` `→` · `F` · `Esc` | Move through slides (on animated slides, `→` plays the next step first) · present full screen · leave |
+| `Space` on Animations | Play / pause the animation · `↑` `↓` switch animation in full screen |
 | `Space` · `1` · `2` | Flip a flashcard · Again · Got it |
 
 ## Run it locally
@@ -55,14 +65,30 @@ npx wrangler deploy     # uses wrangler.jsonc, serves ./dist
 
 Everything is driven by one registry file: `src/content/course.js`.
 
-1. Copy `src/content/phase-0/` to `src/content/phase-1/` and replace the content:
-   - `slides.jsx`: the slides (`parts`, `slides` with `title`, `lead`, `body`, `remember`)
-   - `flashcards.js`, `glossary.js`, `quiz.js`, `journey.js` (optional)
-   - `LessonPlan.jsx`, `Cheatsheet.jsx`, `Lab.jsx`: each exports its `…Sections` for search
-   - `index.js`: title, summary, goal, checkpoint, and the `pages` list (drop pages you don't need)
-2. In `src/content/course.js`, import it and replace the `soon(1, …)` line with the new phase.
+1. Copy `src/content/phase-1/` to `src/content/phase-2/` and replace the content:
+   - `slides.jsx`: the slides (`parts`, `slides` with `title`, `lead`, `body` or `scene`, `remember`)
+   - `explainers.js`: animated explainers (see below)
+   - `flashcards.js`, `glossary.js`, `quiz.js` (`journey.js` from Phase 0 if you want a journey page)
+   - `LessonPlan.jsx`, `Demos.jsx`, `Cheatsheet.jsx`, `Lab.jsx`: each exports its `…Sections` for search
+   - `index.js`: title, summary, goal, checkpoint, `flow`, and the `pages` list (drop pages you don't need)
+2. In `src/content/course.js`, import it and replace the `soon(2, …)` line with the new phase.
 
 The hub, the phase nav, `Ctrl K` search and revision mode pick it up automatically.
+
+## Animated explainers
+
+An explainer is plain data rendered by `src/components/Scene.jsx`: optional `code`, a list of `panels`
+(`stack`, `queue`, `box`, `memory`, `console`, `loop`, `timeline`), a CSS grid `areas` layout, and `frames`.
+Each frame applies a few operations to the previous one:
+
+```js
+{ line: 3, say: 'Narration for this step', add: [['stack', { id: 'fn', text: 'getEvent()', tint: 'pink' }]] }
+{ move: [['fn', 'paused', { badge: 'await' }]], log: 'printed line', remove: ['x'], set: [['id', { value: '45' }]] }
+```
+
+Blocks keep their `id` between frames, so a block that changes panel glides there; new blocks pop in
+(or fly out of another block with `from: 'otherId'`); removed ones fade out. Put `scene: myExplainer`
+on a slide to present it step by step, and list it in the phase's `explainers` for the Animations page.
 
 ## Structure
 
@@ -70,8 +96,9 @@ The hub, the phase nav, `Ctrl K` search and revision mode pick it up automatical
 src/
   content/course.js         ← the one "linker" file: all phases
   content/phase-0/          ← all Phase 0 content
+  content/phase-1/          ← all Phase 1 content (explainers.js = the animations)
   pages/                    ← page templates (slides, journey, quiz, flashcards…)
-  components/               ← search palette, flashcards, diagrams, UI blocks
+  components/               ← search palette, flashcards, diagrams, Scene (animations), UI blocks
   styles/                   ← tokens (colours, fonts, dark mode) + layout + slides
 ```
 
